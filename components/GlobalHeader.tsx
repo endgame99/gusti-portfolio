@@ -1,76 +1,302 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-type MenuKey = "work" | "capabilities" | "library";
+type Language = "en" | "id";
+type MenuKey = "work" | "solutions" | "expertise" | "library";
+type Theme = "light" | "dark";
 
-type NavigationMenu = {
-  key: MenuKey;
-  label: string;
-  eyebrow: string;
-  description: string;
-  items: string[];
-  ctaLabel: string;
+type LinkItem = {
+  title: string;
   href: string;
+  description?: string;
+  meta?: string;
+  glyph: string;
 };
 
-const navigationMenus: NavigationMenu[] = [
-  {
-    key: "work",
-    label: "Work",
-    eyebrow: "Featured work",
-    description: "Selected product, campaign, and brand directions.",
-    items: ["STARMAP", "ALFAS FRAGRANCE", "FABIL NATURAL", "FAT SPORT"],
-    ctaLabel: "View Featured Work",
-    href: "/work",
-  },
-  {
-    key: "capabilities",
-    label: "Capabilities",
-    eyebrow: "Creative production",
-    description: "Focused outputs for modern brands and product businesses.",
-    items: [
-      "AI Product Visuals",
-      "AI Video Production",
-      "AI Photoshoot",
-      "Ecommerce Campaigns",
-      "UGC Content Direction",
-      "Motion Design",
-      "PDP / Product Display",
-      "Branding & Packaging",
-    ],
-    ctaLabel: "View Capabilities",
-    href: "/capabilities",
-  },
-  {
-    key: "library",
-    label: "Library",
-    eyebrow: "Creative archive",
-    description: "A growing index of visual outputs and directions.",
-    items: [
-      "Product Visuals",
-      "AI Photoshoot",
-      "AI Video",
-      "Catalog",
-      "Lookbook",
-      "UGC",
-      "Motion",
-      "PDP / Product Page",
-      "Campaign",
-      "Packaging",
-      "Branding",
-      "China Ecommerce",
-      "Korean Minimalist / Coming Soon",
-      "Experiments",
-    ],
-    ctaLabel: "View Creative Library",
-    href: "/library",
-  },
-];
+type HeaderCopy = {
+  nav: Record<MenuKey, string>;
+  menuIntro: Record<MenuKey, { eyebrow: string; description: string }>;
+  projects: LinkItem[];
+  solutions: LinkItem[];
+  expertise: LinkItem[];
+  library: LinkItem[];
+  featured: {
+    label: string;
+    title: string;
+    meta: string;
+    status: string;
+    cta: string;
+  };
+  ctas: {
+    work: string;
+    download: string;
+    downloadStatus: string;
+    hire: string;
+    themeLight: string;
+    themeDark: string;
+    language: string;
+  };
+};
 
 const whatsappHref =
   "https://wa.me/?text=Hello%20Gustiansyah%2C%20I%27d%20like%20to%20discuss%20a%20creative%20project.";
+
+const copy: Record<Language, HeaderCopy> = {
+  en: {
+    nav: {
+      work: "Work",
+      solutions: "Solutions",
+      expertise: "Expertise",
+      library: "Creative Library",
+    },
+    menuIntro: {
+      work: {
+        eyebrow: "Selected releases",
+        description: "Clickable case directions for product, campaign, and brand work.",
+      },
+      solutions: {
+        eyebrow: "Problem solver POV",
+        description: "Start from the business problem, then shape the creative direction.",
+      },
+      expertise: {
+        eyebrow: "Production strengths",
+        description: "AI-assisted visual, video, ecommerce, and brand content capabilities.",
+      },
+      library: {
+        eyebrow: "Creative archive",
+        description: "References, directions, layouts, hooks, styles, and experiments.",
+      },
+    },
+    projects: [
+      {
+        title: "STARMAP",
+        href: "/work/starmap",
+        meta: "Brand / AI Creative Direction / Product Release",
+        description: "A representative release direction for AI-assisted brand storytelling.",
+        glyph: "S",
+      },
+      {
+        title: "ALFAS FRAGRANCE",
+        href: "/work/alfas-fragrance",
+        meta: "Product Visuals / Campaign / Ecommerce Content",
+        description: "Premium product imagery direction for scent, texture, and mood.",
+        glyph: "A",
+      },
+      {
+        title: "FABIL NATURAL",
+        href: "/work/fabil-natural",
+        meta: "Brand Content / Product Campaign / Visual Direction",
+        description: "Natural product storytelling with clean commerce-ready outputs.",
+        glyph: "F",
+      },
+      {
+        title: "FAT SPORT",
+        href: "/work/fat-sport",
+        meta: "Sports / Product Campaign / Content Direction",
+        description: "Energetic product campaign framing for fast-moving content.",
+        glyph: "FS",
+      },
+    ],
+    solutions: [
+      {
+        title: "Launch a product faster",
+        href: "/work",
+        description: "Shape release visuals, content angles, and launch-ready directions.",
+        glyph: "LP",
+      },
+      {
+        title: "Upgrade ecommerce visuals",
+        href: "/library",
+        description: "Improve marketplace, PDP, and campaign presentation quality.",
+        glyph: "EV",
+      },
+      {
+        title: "Build AI photoshoot directions",
+        href: "/capabilities",
+        description: "Turn product context into precise AI-assisted shoot systems.",
+        glyph: "AI",
+      },
+      {
+        title: "Create short-form content angles",
+        href: "/library",
+        description: "Map UGC hooks, quick concepts, and platform-ready messages.",
+        glyph: "SF",
+      },
+      {
+        title: "Systemize brand content",
+        href: "/workspace",
+        description: "Create a repeatable flow from input to visual content packages.",
+        glyph: "BC",
+      },
+    ],
+    expertise: [
+      { title: "AI Product Visuals", href: "/capabilities", glyph: "AP" },
+      { title: "AI Video Production", href: "/capabilities", glyph: "AV" },
+      { title: "AI Photoshoot", href: "/capabilities", glyph: "PH" },
+      { title: "Ecommerce Campaigns", href: "/capabilities", glyph: "EC" },
+      { title: "UGC Content Direction", href: "/capabilities", glyph: "UG" },
+      { title: "Motion Design", href: "/capabilities", glyph: "MO" },
+      { title: "PDP / Product Display", href: "/capabilities", glyph: "PD" },
+      { title: "Branding & Packaging", href: "/capabilities", glyph: "BP" },
+    ],
+    library: [
+      { title: "Visual Directions", href: "/library", glyph: "VD" },
+      { title: "AI Photoshoot References", href: "/library", glyph: "AR" },
+      { title: "Ecommerce Layout Patterns", href: "/library", glyph: "EL" },
+      { title: "PDP / Product Page References", href: "/library", glyph: "PP" },
+      { title: "UGC Hooks & Content Angles", href: "/library", glyph: "UH" },
+      { title: "Campaign References", href: "/library", glyph: "CR" },
+      { title: "Packaging & Branding References", href: "/library", glyph: "PB" },
+      { title: "China Ecommerce Styles", href: "/library", glyph: "CN" },
+      { title: "Korean Minimalist Styles", href: "/library", glyph: "KR" },
+      { title: "Experiments", href: "/library", glyph: "EX" },
+    ],
+    featured: {
+      label: "Featured Case",
+      title: "STARMAP",
+      meta: "Brand / AI Creative Direction / Product Release",
+      status: "Case study coming soon",
+      cta: "View STARMAP",
+    },
+    ctas: {
+      work: "Explore all work",
+      download: "Download CV",
+      downloadStatus: "Coming Soon",
+      hire: "Hire Me",
+      themeLight: "Switch to dark theme",
+      themeDark: "Switch to light theme",
+      language: "Language",
+    },
+  },
+  id: {
+    nav: {
+      work: "Karya",
+      solutions: "Solusi",
+      expertise: "Keahlian",
+      library: "Perpustakaan Kreatif",
+    },
+    menuIntro: {
+      work: {
+        eyebrow: "Rilis pilihan",
+        description: "Arah studi kasus untuk produk, kampanye, dan brand.",
+      },
+      solutions: {
+        eyebrow: "Sudut pandang solusi",
+        description: "Mulai dari masalah bisnis, lalu bentuk arah kreatifnya.",
+      },
+      expertise: {
+        eyebrow: "Kekuatan produksi",
+        description: "Kemampuan visual, video, ecommerce, dan konten brand berbasis AI.",
+      },
+      library: {
+        eyebrow: "Arsip kreatif",
+        description: "Referensi, arah visual, layout, hook, gaya, dan eksperimen.",
+      },
+    },
+    projects: [
+      {
+        title: "STARMAP",
+        href: "/work/starmap",
+        meta: "Brand / AI Creative Direction / Product Release",
+        description: "Arah rilis representatif untuk storytelling brand berbasis AI.",
+        glyph: "S",
+      },
+      {
+        title: "ALFAS FRAGRANCE",
+        href: "/work/alfas-fragrance",
+        meta: "Product Visuals / Campaign / Ecommerce Content",
+        description: "Arah visual produk premium untuk mood, tekstur, dan aroma.",
+        glyph: "A",
+      },
+      {
+        title: "FABIL NATURAL",
+        href: "/work/fabil-natural",
+        meta: "Brand Content / Product Campaign / Visual Direction",
+        description: "Storytelling produk natural dengan output bersih untuk commerce.",
+        glyph: "F",
+      },
+      {
+        title: "FAT SPORT",
+        href: "/work/fat-sport",
+        meta: "Sports / Product Campaign / Content Direction",
+        description: "Kerangka kampanye produk energik untuk konten cepat.",
+        glyph: "FS",
+      },
+    ],
+    solutions: [
+      {
+        title: "Luncurkan produk lebih cepat",
+        href: "/work",
+        description: "Bentuk visual rilis, angle konten, dan arah launch-ready.",
+        glyph: "LP",
+      },
+      {
+        title: "Tingkatkan visual ecommerce",
+        href: "/library",
+        description: "Perbaiki kualitas marketplace, PDP, dan presentasi kampanye.",
+        glyph: "EV",
+      },
+      {
+        title: "Bangun arah AI photoshoot",
+        href: "/capabilities",
+        description: "Ubah konteks produk menjadi arahan shoot berbasis AI.",
+        glyph: "AI",
+      },
+      {
+        title: "Buat angle short-form content",
+        href: "/library",
+        description: "Petakan UGC hook, konsep cepat, dan pesan siap platform.",
+        glyph: "SF",
+      },
+      {
+        title: "Sistemkan konten brand",
+        href: "/workspace",
+        description: "Bangun alur berulang dari input ke paket konten visual.",
+        glyph: "BC",
+      },
+    ],
+    expertise: [
+      { title: "Visual Produk AI", href: "/capabilities", glyph: "AP" },
+      { title: "Produksi Video AI", href: "/capabilities", glyph: "AV" },
+      { title: "AI Photoshoot", href: "/capabilities", glyph: "PH" },
+      { title: "Kampanye Ecommerce", href: "/capabilities", glyph: "EC" },
+      { title: "Arah Konten UGC", href: "/capabilities", glyph: "UG" },
+      { title: "Motion Design", href: "/capabilities", glyph: "MO" },
+      { title: "PDP / Product Display", href: "/capabilities", glyph: "PD" },
+      { title: "Branding & Packaging", href: "/capabilities", glyph: "BP" },
+    ],
+    library: [
+      { title: "Arah Visual", href: "/library", glyph: "VD" },
+      { title: "Referensi AI Photoshoot", href: "/library", glyph: "AR" },
+      { title: "Pola Layout Ecommerce", href: "/library", glyph: "EL" },
+      { title: "Referensi PDP / Product Page", href: "/library", glyph: "PP" },
+      { title: "UGC Hook & Angle Konten", href: "/library", glyph: "UH" },
+      { title: "Referensi Kampanye", href: "/library", glyph: "CR" },
+      { title: "Referensi Packaging & Branding", href: "/library", glyph: "PB" },
+      { title: "Gaya China Ecommerce", href: "/library", glyph: "CN" },
+      { title: "Gaya Korean Minimalist", href: "/library", glyph: "KR" },
+      { title: "Eksperimen", href: "/library", glyph: "EX" },
+    ],
+    featured: {
+      label: "Kasus Pilihan",
+      title: "STARMAP",
+      meta: "Brand / AI Creative Direction / Product Release",
+      status: "Studi kasus segera hadir",
+      cta: "Lihat STARMAP",
+    },
+    ctas: {
+      work: "Jelajahi semua karya",
+      download: "Download CV",
+      downloadStatus: "Coming Soon",
+      hire: "Hire Me",
+      themeLight: "Aktifkan tema gelap",
+      themeDark: "Aktifkan tema terang",
+      language: "Bahasa",
+    },
+  },
+};
 
 function ChevronIcon() {
   return (
@@ -88,6 +314,25 @@ function ArrowIcon() {
   );
 }
 
+function ThemeIcon({ theme }: { theme: Theme }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 18 18">
+      {theme === "light" ? (
+        <>
+          <circle cx="9" cy="9" r="3.1" />
+          <path d="M9 1.6v1.7M9 14.7v1.7M3.8 3.8 5 5M13 13l1.2 1.2M1.6 9h1.7M14.7 9h1.7M3.8 14.2 5 13M13 5l1.2-1.2" />
+        </>
+      ) : (
+        <path d="M13.8 11.2A5.9 5.9 0 0 1 6.8 4a6.1 6.1 0 1 0 7 7.2Z" />
+      )}
+    </svg>
+  );
+}
+
+function Glyph({ children }: { children: string }) {
+  return <span className="nav-glyph" aria-hidden="true">{children}</span>;
+}
+
 export default function GlobalHeader() {
   const [activeDesktopMenu, setActiveDesktopMenu] = useState<MenuKey | null>(
     null,
@@ -96,7 +341,28 @@ export default function GlobalHeader() {
   const [activeMobileMenu, setActiveMobileMenu] = useState<MenuKey | null>(
     null,
   );
+  const [language, setLanguage] = useState<Language>("en");
+  const [theme, setTheme] = useState<Theme>("light");
   const headerRef = useRef<HTMLElement>(null);
+  const activeCopy = copy[language];
+
+  const menus = useMemo(
+    () => [
+      { key: "work" as const, items: activeCopy.projects },
+      { key: "solutions" as const, items: activeCopy.solutions },
+      { key: "expertise" as const, items: activeCopy.expertise },
+      { key: "library" as const, items: activeCopy.library },
+    ],
+    [activeCopy],
+  );
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = language === "en" ? "en" : "id";
+  }, [language]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -138,6 +404,93 @@ export default function GlobalHeader() {
     setActiveMobileMenu(null);
   }
 
+  function toggleTheme() {
+    setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
+  }
+
+  function toggleLanguage(nextLanguage: Language) {
+    setLanguage(nextLanguage);
+    setActiveDesktopMenu(null);
+  }
+
+  function renderGeneralMenu(menu: (typeof menus)[number]) {
+    const intro = activeCopy.menuIntro[menu.key];
+
+    return (
+      <>
+        <div className="rich-dropdown__intro">
+          <p className="rich-dropdown__eyebrow">{intro.eyebrow}</p>
+          <p className="rich-dropdown__description">{intro.description}</p>
+        </div>
+
+        <div className="rich-dropdown__grid">
+          {menu.items.map((item) => (
+            <Link
+              className="rich-dropdown__link"
+              href={item.href}
+              key={item.title}
+              onClick={closeNavigation}
+            >
+              <Glyph>{item.glyph}</Glyph>
+              <span>
+                <strong>{item.title}</strong>
+                {item.description ? <small>{item.description}</small> : null}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  function renderWorkMenu() {
+    return (
+      <>
+        <div className="work-mega__projects">
+          {activeCopy.projects.map((project) => (
+            <Link
+              className="project-card"
+              href={project.href}
+              key={project.title}
+              onClick={closeNavigation}
+            >
+              <Glyph>{project.glyph}</Glyph>
+              <span>
+                <strong>{project.title}</strong>
+                <small>{project.meta}</small>
+              </span>
+              <ArrowIcon />
+            </Link>
+          ))}
+        </div>
+
+        <Link
+          className="featured-case"
+          href="/work/starmap"
+          onClick={closeNavigation}
+        >
+          <span className="featured-case__label">{activeCopy.featured.label}</span>
+          <strong>{activeCopy.featured.title}</strong>
+          <span>{activeCopy.featured.meta}</span>
+          <em>{activeCopy.featured.status}</em>
+          <span className="featured-case__cta">
+            {activeCopy.featured.cta}
+            <ArrowIcon />
+          </span>
+        </Link>
+
+        <Link
+          className="rich-dropdown__cta"
+          href="/work"
+          onClick={closeNavigation}
+        >
+          {activeCopy.ctas.work}
+          <ArrowIcon />
+        </Link>
+      </>
+    );
+  }
+
   return (
     <header className="site-header" ref={headerRef}>
       <div className="site-header__bar">
@@ -154,7 +507,7 @@ export default function GlobalHeader() {
         </Link>
 
         <nav className="desktop-navigation" aria-label="Primary navigation">
-          {navigationMenus.map((menu) => {
+          {menus.map((menu) => {
             const isOpen = activeDesktopMenu === menu.key;
 
             return (
@@ -175,9 +528,11 @@ export default function GlobalHeader() {
                   type="button"
                   aria-expanded={isOpen}
                   aria-controls={`desktop-menu-${menu.key}`}
-                  onClick={() => setActiveDesktopMenu(menu.key)}
+                  onClick={() =>
+                    setActiveDesktopMenu(isOpen ? null : menu.key)
+                  }
                 >
-                  {menu.label}
+                  {activeCopy.nav[menu.key]}
                   <ChevronIcon />
                 </button>
 
@@ -186,32 +541,9 @@ export default function GlobalHeader() {
                   id={`desktop-menu-${menu.key}`}
                   data-open={isOpen}
                 >
-                  <div className="rich-dropdown__intro">
-                    <p className="rich-dropdown__eyebrow">{menu.eyebrow}</p>
-                    <p className="rich-dropdown__description">
-                      {menu.description}
-                    </p>
-                  </div>
-
-                  <ul className="rich-dropdown__list">
-                    {menu.items.map((item, index) => (
-                      <li key={item}>
-                        <span>{item}</span>
-                        <span className="rich-dropdown__index">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    className="rich-dropdown__cta"
-                    href={menu.href}
-                    onClick={closeNavigation}
-                  >
-                    {menu.ctaLabel}
-                    <ArrowIcon />
-                  </Link>
+                  {menu.key === "work"
+                    ? renderWorkMenu()
+                    : renderGeneralMenu(menu)}
                 </div>
               </div>
             );
@@ -219,14 +551,28 @@ export default function GlobalHeader() {
         </nav>
 
         <div className="desktop-actions">
+          <button
+            className="theme-toggle"
+            type="button"
+            aria-label={
+              theme === "light"
+                ? activeCopy.ctas.themeLight
+                : activeCopy.ctas.themeDark
+            }
+            onClick={toggleTheme}
+          >
+            <ThemeIcon theme={theme} />
+          </button>
           <span
             className="header-action header-action--secondary"
             role="link"
             aria-disabled="true"
             title="CV download coming soon"
           >
-            Download CV
-            <span className="header-action__status">Soon</span>
+            {activeCopy.ctas.download}
+            <span className="header-action__status">
+              {activeCopy.ctas.downloadStatus}
+            </span>
           </span>
           <a
             className="header-action header-action--primary"
@@ -234,13 +580,25 @@ export default function GlobalHeader() {
             target="_blank"
             rel="noreferrer"
           >
-            Hire Me
+            {activeCopy.ctas.hire}
           </a>
-          <span className="language-switch" aria-label="Language: English">
-            <span>ID</span>
+          <div className="language-switch" aria-label={activeCopy.ctas.language}>
+            <button
+              type="button"
+              aria-pressed={language === "id"}
+              onClick={() => toggleLanguage("id")}
+            >
+              🇮🇩 ID
+            </button>
             <span aria-hidden="true">/</span>
-            <strong>EN</strong>
-          </span>
+            <button
+              type="button"
+              aria-pressed={language === "en"}
+              onClick={() => toggleLanguage("en")}
+            >
+              🇬🇧 EN
+            </button>
+          </div>
         </div>
 
         <button
@@ -266,7 +624,7 @@ export default function GlobalHeader() {
           aria-label="Mobile navigation"
         >
           <div className="mobile-navigation__menus">
-            {navigationMenus.map((menu) => {
+            {menus.map((menu) => {
               const isOpen = activeMobileMenu === menu.key;
 
               return (
@@ -280,7 +638,7 @@ export default function GlobalHeader() {
                       setActiveMobileMenu(isOpen ? null : menu.key)
                     }
                   >
-                    <span>{menu.label}</span>
+                    <span>{activeCopy.nav[menu.key]}</span>
                     <ChevronIcon />
                   </button>
 
@@ -290,16 +648,25 @@ export default function GlobalHeader() {
                     data-open={isOpen}
                     hidden={!isOpen}
                   >
-                    <p>{menu.description}</p>
-                    <ul>
+                    <p>{activeCopy.menuIntro[menu.key].description}</p>
+                    <div className="mobile-accordion__links">
                       {menu.items.map((item) => (
-                        <li key={item}>{item}</li>
+                        <Link
+                          href={item.href}
+                          key={item.title}
+                          onClick={closeNavigation}
+                        >
+                          <Glyph>{item.glyph}</Glyph>
+                          <span>{item.title}</span>
+                        </Link>
                       ))}
-                    </ul>
-                    <Link href={menu.href} onClick={closeNavigation}>
-                      {menu.ctaLabel}
-                      <ArrowIcon />
-                    </Link>
+                    </div>
+                    {menu.key === "work" ? (
+                      <Link href="/work" onClick={closeNavigation}>
+                        {activeCopy.ctas.work}
+                        <ArrowIcon />
+                      </Link>
+                    ) : null}
                   </div>
                 </div>
               );
@@ -307,13 +674,25 @@ export default function GlobalHeader() {
           </div>
 
           <div className="mobile-navigation__actions">
+            <button
+              className="mobile-navigation__theme"
+              type="button"
+              onClick={toggleTheme}
+            >
+              <span>
+                <ThemeIcon theme={theme} />
+                {theme === "light"
+                  ? activeCopy.ctas.themeLight
+                  : activeCopy.ctas.themeDark}
+              </span>
+            </button>
             <span
               className="mobile-navigation__cv"
               role="link"
               aria-disabled="true"
             >
-              <span>Download CV</span>
-              <small>Coming soon</small>
+              <span>{activeCopy.ctas.download}</span>
+              <small>{activeCopy.ctas.downloadStatus}</small>
             </span>
             <a
               className="mobile-navigation__hire"
@@ -322,18 +701,32 @@ export default function GlobalHeader() {
               rel="noreferrer"
               onClick={closeNavigation}
             >
-              Hire Me
+              {activeCopy.ctas.hire}
               <ArrowIcon />
             </a>
-            <span
+            <div
               className="mobile-navigation__language"
-              aria-label="Language: English"
+              aria-label={activeCopy.ctas.language}
             >
-              Language
+              <span>{activeCopy.ctas.language}</span>
               <span>
-                ID / <strong>EN</strong>
+                <button
+                  type="button"
+                  aria-pressed={language === "id"}
+                  onClick={() => toggleLanguage("id")}
+                >
+                  🇮🇩 ID
+                </button>
+                /
+                <button
+                  type="button"
+                  aria-pressed={language === "en"}
+                  onClick={() => toggleLanguage("en")}
+                >
+                  🇬🇧 EN
+                </button>
               </span>
-            </span>
+            </div>
           </div>
         </nav>
       </div>
